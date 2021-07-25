@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    restart: always
+    container_name: nginx
+    hostname: nginx
+    ports:
+      - 5043:443
+    # When the Nginx container starts up, it will be able to reach the registry container at the hostname registry no matter what the actual IP address the registry container ends up having
+    # (Behind the scenes Docker is actually inserting an entry into the /etc/hosts file in the nginx container to tell it the IP of the registry container)
+    links:
+      - registry:registry
+    # The :ro at the end just tells Docker that the Nginx container should only have read-only access to the host filesystem
+    volumes:
+      - ./nginx/:/etc/nginx/conf.d:ro
+  registry:
+    image: registry:2
+    container_name: registry
+    hostname: registry
+    restart: always
+    ports:
+      - 5000:5000
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+    volumes:
+      - ./data:/data
